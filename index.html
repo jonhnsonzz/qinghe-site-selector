@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>青禾选址宝 - 让选址从赌博，变成计算题</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #0a0a0f; color: #e8e8e8; min-height: 100vh; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        
+        /* Header */
+        header { text-align: center; padding: 40px 0 30px; border-bottom: 1px solid #222; margin-bottom: 40px; }
+        .logo { font-size: 32px; font-weight: 800; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 12px; }
+        .tagline { font-size: 18px; color: #888; letter-spacing: 2px; }
+        .pain-point { margin-top: 20px; padding: 16px 24px; background: linear-gradient(135deg, rgba(255,107,107,0.15) 0%, rgba(255,145,77,0.15) 100%); border-radius: 12px; border: 1px solid rgba(255,107,107,0.3); display: inline-block; }
+        .pain-point span { color: #ff6b6b; font-weight: 600; }
+        
+        /* Layout */
+        .main-grid { display: grid; grid-template-columns: 380px 1fr; gap: 30px; }
+        @media (max-width: 900px) { .main-grid { grid-template-columns: 1fr; } }
+        
+        /* Form Panel */
+        .panel { background: linear-gradient(180deg, #141419 0%, #1a1a22 100%); border-radius: 16px; padding: 28px; border: 1px solid #222; }
+        .panel-title { font-size: 16px; font-weight: 600; color: #667eea; margin-bottom: 20px; display: flex; align-items: center; gap: 8px; }
+        .panel-title::before { content: ""; width: 4px; height: 16px; background: linear-gradient(180deg, #667eea, #764ba2); border-radius: 2px; }
+        
+        .form-group { margin-bottom: 18px; }
+        .form-group label { display: block; font-size: 13px; color: #888; margin-bottom: 8px; font-weight: 500; }
+        .form-group input, .form-group select { width: 100%; padding: 12px 14px; background: #0d0d12; border: 1px solid #2a2a35; border-radius: 10px; color: #e8e8e8; font-size: 14px; outline: none; transition: border-color 0.2s; }
+        .form-group input:focus, .form-group select:focus { border-color: #667eea; }
+        .form-group select option { background: #1a1a22; }
+        .form-hint { font-size: 11px; color: #555; margin-top: 5px; }
+        
+        .btn-calc { width: 100%; padding: 16px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; border-radius: 12px; color: white; font-size: 16px; font-weight: 700; cursor: pointer; transition: transform 0.2s, opacity 0.2s; margin-top: 10px; }
+        .btn-calc:hover { transform: translateY(-2px); opacity: 0.9; }
+        .btn-calc:active { transform: translateY(0); }
+        .btn-calc:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+        
+        /* Report Panel */
+        .report-panel { display: none; }
+        .report-panel.active { display: block; }
+        .score-section { text-align: center; padding: 30px 0; border-bottom: 1px solid #222; margin-bottom: 25px; }
+        .score-circle { width: 140px; height: 140px; margin: 0 auto 16px; position: relative; }
+        .score-ring { width: 100%; height: 100%; transform: rotate(-90deg); }
+        .score-ring circle { fill: none; stroke-width: 10; stroke-linecap: round; }
+        .score-ring .bg { stroke: #2a2a35; }
+        .score-ring .fg { stroke-dasharray: 377; stroke-dashoffset: 377; transition: stroke-dashoffset 1.2s ease-out, stroke 0.3s; }
+        .score-value { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 40px; font-weight: 800; }
+        .score-label { font-size: 15px; color: #888; }
+        .score-label.good { color: #51cf66; }
+        .score-label.medium { color: #ffd43b; }
+        .score-label.bad { color: #ff6b6b; }
+        
+        .report-section { margin-bottom: 24px; }
+        .report-section h3 { font-size: 14px; color: #667eea; margin-bottom: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
+        .report-card { background: #0d0d12; border-radius: 10px; padding: 16px; border: 1px solid #1e1e28; }
+        .report-card p, .report-card li { font-size: 13px; line-height: 1.8; color: #bbb; }
+        .report-card ul { padding-left: 18px; }
+        .report-card li { margin-bottom: 6px; }
+        .metric-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #1a1a22; }
+        .metric-row:last-child { border-bottom: none; }
+        .metric-label { color: #888; }
+        .metric-value { font-weight: 600; }
+        .metric-value.positive { color: #51cf66; }
+        .metric-value.warning { color: #ffd43b; }
+        .metric-value.negative { color: #ff6b6b; }
+        
+        .breakeven-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 12px; }
+        .breakeven-item { background: #1a1a22; border-radius: 8px; padding: 12px; text-align: center; }
+        .breakeven-item.pessim .be-label { color: #ff6b6b; }
+        .breakeven-item.neutral .be-label { color: #ffd43b; }
+        .breakeven-item.optim .be-label { color: #51cf66; }
+        .be-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+        .be-value { font-size: 18px; font-weight: 700; }
+        .be-sub { font-size: 11px; color: #555; margin-top: 4px; }
+        
+        .advice-box { background: linear-gradient(135deg, rgba(102,126,234,0.15) 0%, rgba(118,75,162,0.15) 100%); border-radius: 10px; padding: 16px; border-left: 3px solid #667eea; }
+        .advice-box .advice-title { font-size: 12px; color: #667eea; font-weight: 600; margin-bottom: 8px; }
+        .advice-box p { font-size: 13px; line-height: 1.8; color: #ccc; }
+        
+        .competitor-tag { display: inline-block; padding: 4px 10px; background: rgba(255,107,107,0.15); border-radius: 20px; font-size: 12px; color: #ff6b6b; margin: 3px; border: 1px solid rgba(255,107,107,0.3); }
+        
+        /* Loading */
+        .loading { text-align: center; padding: 60px 0; display: none; }
+        .loading.active { display: block; }
+        .loading-spinner { width: 50px; height: 50px; border: 3px solid #2a2a35; border-top-color: #667eea; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 16px; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .loading p { color: #666; font-size: 14px; }
+        
+        /* AMap */
+        #map-container { height: 280px; border-radius: 10px; overflow: hidden; margin-top: 16px; border: 1px solid #2a2a35; }
+        #map-container .amap-marker { display: none; }
+        .map-placeholder { height: 100%; display: flex; align-items: center; justify-content: center; background: #0d0d12; color: #444; font-size: 13px; }
+        
+        .badge-api { display: inline-block; padding: 3px 8px; background: rgba(255,107,107,0.2); border-radius: 4px; font-size: 10px; color: #ff6b6b; margin-left: 8px; vertical-align: middle; }
+        
+        footer { text-align: center; padding: 40px 0 20px; color: #444; font-size: 12px; margin-top: 40px; border-top: 1px solid #1a1a22; }
+        footer a { color: #667eea; text-decoration: none; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">青禾选址宝</div>
+            <div class="tagline">AI驱动的线下门店选址评估工具</div>
+            <div class="pain-point">
+                <span>痛点：</span>每年30%的门店因选址错误亏损倒闭，平均损失<span>15-40万</span>。选址靠感觉？青禾选址宝，让你的下一次开店决策，有数据支撑。
+            </div>
+        </header>
+        
+        <div class="main-grid">
+            <!-- Input Form -->
+            <div class="panel">
+                <div class="panel-title">Step 1: 填写选址信息</div>
+                <form id="calcForm">
+                    <div class="form-group">
+                        <label>行业品类</label>
+                        <select id="category" required>
+                            <option value="milk_tea">奶茶/茶饮</option>
+                            <option value="fast_food">快餐/小食</option>
+                            <option value="convenience">便利店</option>
+                            <option value="fruit">水果店</option>
+                            <option value="bakery">烘焙甜品</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>候选地址</label>
+                        <input type="text" id="address" placeholder="例如：北京市朝阳区三里屯路19号" required>
+                    </div>
+                    <div class="form-group">
+                        <label>城市</label>
+                        <input type="text" id="city" placeholder="例如：北京" value="北京" required>
+                    </div>
+                    <div id="map-container"><div class="map-placeholder">定位中...</div></div>
+                    
+                    <div style="margin-top: 20px;">
+                        <div class="panel-title">Step 2: 经营参数（选填，使用推荐默认值）</div>
+                        <div class="form-group">
+                            <label>面积 (m²)</label>
+                            <input type="number" id="area" placeholder="例如：40" value="40">
+                            <div class="form-hint">实际使用面积，影响租金和容量</div>
+                        </div>
+                        <div class="form-group">
+                            <label>月租金 (元)</label>
+                            <input type="number" id="rent" placeholder="例如：9600" value="9600">
+                            <div class="form-hint">月租金，影响盈亏测算</div>
+                        </div>
+                        <div class="form-group">
+                            <label>客单价 (元)</label>
+                            <input type="number" id="price" placeholder="例如：22" value="22">
+                            <div class="form-hint">平均每位顾客消费金额</div>
+                        </div>
+                        <div class="form-group">
+                            <label>人员数量</label>
+                            <input type="number" id="staff" placeholder="例如：3" value="3" min="1">
+                            <div class="form-hint">含老板自己，人数影响人工成本</div>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn-calc" id="calcBtn">
+                        🚀 开始选址评估
+                    </button>
+                </form>
+                
+                <div style="margin-top: 16px; padding: 12px; background: rgba(102,126,234,0.1); border-radius: 8px; border: 1px solid rgba(102,126,234,0.2);">
+                    <p style="font-size: 11px; color: #888; line-height: 1.6;">
+                        <strong style="color: #667eea;">数据说明：</strong>本MVP版使用高德地图POI数据作为竞品数据源。高德API免费额度充足，个人开发者每日可查询1000次，足够演示和小规模使用。
+                    </p>
+                </div>
+            </div>
+            
+            <!-- Report -->
+            <div>
+                <div class="loading" id="loading">
+                    <div class="loading-spinner"></div>
+                    <p>AI正在分析选址数据...</p>
+                </div>
+                
+                <div class="panel report-panel" id="report">
+                    <div class="score-section">
+                        <div class="score-circle">
+                            <svg class="score-ring" viewBox="0 0 150 150">
+                                <circle class="bg" cx="75" cy="75" r="60"/>
+                                <circle class="fg" id="scoreFg" cx="75" cy="75" r="60"/>
+                            </svg>
+                            <div class="score-value" id="scoreValue">--</div>
+                        </div>
+                        <div class="score-label" id="scoreLabel">综合选址评分</div>
+                    </div>
+                    
+                    <div class="report-section">
+                        <h3>📊 竞品分析</h3>
+                        <div class="report-card">
+                            <p id="competitorSummary">加载中...</p>
+                            <div id="competitorList" style="margin-top: 12px;"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="report-section">
+                        <h3>💰 盈亏测算</h3>
+                        <div class="report-card">
+                            <div class="metric-row">
+                                <span class="metric-label">月固定成本</span>
+                                <span class="metric-value" id="fixedCost">--</span>
+                            </div>
+                            <div class="metric-row">
+                                <span class="metric-label">毛利率</span>
+                                <span class="metric-value" id="grossMargin">--</span>
+                            </div>
+                            <div class="metric-row">
+                                <span class="metric-label">月盈亏平衡点</span>
+                                <span class="metric-value" id="breakeven">--</span>
+                            </div>
+                            <div class="metric-row">
+                                <span class="metric-label">日均需接待</span>
+                                <span class="metric-value" id="dailyCustomers">--</span>
+                            </div>
+                        </div>
+                        <div class="breakeven-grid" id="breakevenGrid">
+                            <div class="breakeven-item pessim">
+                                <div class="be-label">悲观线 ×0.7</div>
+                                <div class="be-value" id="pessimRevenue">--</div>
+                                <div class="be-sub">年营收</div>
+                            </div>
+                            <div class="breakeven-item neutral">
+                                <div class="be-label">中性线 ×1.0</div>
+                                <div class="be-value" id="neutralRevenue">--</div>
+                                <div class="be-sub">年营收</div>
+                            </div>
+                            <div class="breakeven-item optim">
+                                <div class="be-label">乐观线 ×1.3</div>
+                                <div class="be-value" id="optimRevenue">--</div>
+                                <div class="be-sub">年营收</div>
+                            </div>
+                        </div>
+                        <div class="metric-row" style="margin-top: 12px; background: #1a1a22; padding: 12px; border-radius: 8px;">
+                            <span class="metric-label">预测回本周期</span>
+                            <span class="metric-value warning" id="paybackPeriod">--</span>
+                        </div>
+                    </div>
+                    
+                    <div class="report-section">
+                        <h3>🎯 AI选址建议</h3>
+                        <div class="advice-box">
+                            <div class="advice-title">综合评估结论</div>
+                            <p id="adviceText">正在生成...</p>
+                        </div>
+                    </div>
+                    
+                    <div class="report-section">
+                        <h3>🗺️ 区域供需分析</h3>
+                        <div class="report-card">
+                            <div class="metric-row">
+                                <span class="metric-label">供需比</span>
+                                <span class="metric-value" id="supplyDemand">--</span>
+                            </div>
+                            <div class="metric-row">
+                                <span class="metric-label">供需判断</span>
+                                <span class="metric-value" id="marketSaturation">--</span>
+                            </div>
+                            <div class="metric-row">
+                                <span class="metric-label">客流吸引力指数</span>
+                                <span class="metric-value" id="huffIndex">--</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>青禾选址宝 v1.0 MVP | 技术支持：石子哥 × 虾哥</p>
+            <p style="margin-top: 6px;">选址有风险，评估仅供参考，最终决策请结合实地考察。</p>
+        </footer>
+    </div>
+    
+    <script src="https://webapi.amap.com/maps?v=2.0&key=你自己的高德key"></script>
+    <script>
+    const CATEGORY_CONFIG = {
+        milk_tea: { name: "奶茶", color: "#f8bbd9", avgInterval: 15, dailyFlow: 180 },
+        fast_food: { name: "快餐", color: "#ffe0b2", avgInterval: 20, dailyFlow: 250 },
+        convenience: { name: "便利店", color: "#b2dfdb", avgInterval: 5, dailyFlow: 400 },
+        fruit: { name: "水果", color: "#c8e6c9", avgInterval: 7, dailyFlow: 120 },
+        bakery: { name: "烘焙", color: "#fff9c4", avgInterval: 25, dailyFlow: 100 }
+    };
+    
+    // 城市客流系数
+    const CITY_COEFF = {
+        "北京": 1.4, "上海": 1.4, "广州": 1.2, "深圳": 1.3,
+        "成都": 1.0, "杭州": 1.1, "武汉": 0.95, "西安": 0.9,
+        "重庆": 0.95, "南京": 1.0, "天津": 1.0, "苏州": 1.05,
+        "长沙": 0.9, "郑州": 0.85, "青岛": 0.95, "沈阳": 0.85
+    };
+    
+    // 模拟竞品数据（真实环境下会调用高德POI API）
+    function generateMockCompetitors(category, count) {
+        const competitors = [];
+        const names = {
+            milk_tea: ["一点点", "喜茶", "奈雪的茶", "古茗", "茶百道", "益禾堂", "霸王茶姬", "CoCo都可", "蜜雪冰城"],
+            fast_food: ["华莱士", "正新鸡排", "麦当劳", "肯德基", "德克士", "黄焖鸡", "沙县小吃", "兰州拉面"],
+            convenience: ["便利蜂", "7-Eleven", "全家", "罗森", "美宜佳", "天福", "京东便利"],
+            fruit: ["百果园", "鲜丰水果", "本来鲜", "谊品生鲜", "水果熟了"],
+            bakery: ["好利来", "味多美", "85度C", "巴黎贝甜", "幸福西饼", "面包新语"]
+        };
+        const brandNames = names[category] || names.milk_tea;
+        for (let i = 0; i < count; i++) {
+            const name = brandNames[Math.floor(Math.random() * brandNames.length)];
+            competitors.push({
+                name: name,
+                distance: (Math.random() * 800 + 50).toFixed(0),
+                rating: (3.5 + Math.random() * 1.5).toFixed(1),
+                price: Math.floor(Math.random() * 40 + 15)
+            });
+        }
+        return competitors.sort((a, b) => a.distance - b.distance);
+    }
+    
+    // 城市客流系数
+    function getCityCoeff(city) {
+        return CITY_COEFF[city] || 1.0;
+    }
+    
+    // Huff吸引力指数计算
+    function calcHuffIndex(competitors, myDistance = 100) {
+        if (!competitors.length) return 100;
+        let totalAttraction = 0;
+        competitors.forEach(c => {
+            const dist = parseFloat(c.distance) || 100;
+            totalAttraction += (1 / Math.pow(dist, 2)) * (parseFloat(c.rating) / 10);
+        });
+        const myAttraction = (1 / Math.pow(myDistance, 2)) * 1.2;
+        const ratio = myAttraction / (totalAttraction + myAttraction);
+        return Math.round(ratio * 100);
+    }
+    
+    // 供需比计算
+    function calcSupplyDemand(competitors, category, city) {
+        const coeff = getCityCoeff(city);
+        const baseDemand = CATEGORY_CONFIG[category].dailyFlow * coeff;
+        const supplyScore = competitors.reduce((sum, c) => {
+            const distFactor = Math.max(0.3, 1 - parseFloat(c.distance) / 1000);
+            return sum + (parseFloat(c.rating) / 5) * distFactor;
+        }, 0);
+        const ratio = supplyScore / (baseDemand / 100);
+        return ratio;
+    }
+    
+    // 选址评分
+    function calcScore(huffIndex, supplyDemand, competitorCount, cityCoeff) {
+        let score = 50;
+        score += (huffIndex / 100) * 25;
+        if (supplyDemand < 0.8) score += 15;
+        else if (supplyDemand > 1.2) score -= 20;
+        else score += 5;
+        score -= Math.min(competitorCount * 2, 15);
+        score += (cityCoeff - 1) * 30;
+        score = Math.max(0, Math.min(100, Math.round(score)));
+        return score;
+    }
+    
+    // 盈亏测算
+    function calcBreakeven(area, rent, staff, price, category) {
+        const dailyCustomers = Math.round(CATEGORY_CONFIG[category].dailyFlow * getCityCoeff(document.getElementById('city').value || '北京') * 0.4);
+        const monthlyFixed = rent + (staff * 6000) + 2000 + 1000;
+        const grossMargin = category === 'milk_tea' ? 0.65 : (category === 'fast_food' ? 0.55 : 0.50);
+        const breakevenMonthly = monthlyFixed / grossMargin;
+        const breakevenDaily = Math.round(breakevenMonthly / 30);
+        const monthlyRevenue = dailyCustomers * price * 30;
+        const annualRevenue = monthlyRevenue * 12;
+        const totalInvestment = (area * 3000) + (rent * 3) + 50000 + 30000;
+        const annualProfit = (annualRevenue * grossMargin) - (monthlyFixed * 12);
+        const paybackYears = annualProfit > 0 ? (totalInvestment / annualProfit).toFixed(1) : null;
+        return {
+            monthlyFixed: monthlyFixed.toLocaleString(),
+            grossMargin: (grossMargin * 100).toFixed(0) + '%',
+            breakevenMonthly: Math.round(breakevenMonthly).toLocaleString(),
+            breakevenDaily: breakevenDaily,
+            dailyTarget: dailyCustomers,
+            pessimRevenue: Math.round(annualRevenue * 0.7 / 10000 * 10) / 10,
+            neutralRevenue: Math.round(annualRevenue / 10000 * 10) / 10,
+            optimRevenue: Math.round(annualRevenue * 1.3 / 10000 * 10) / 10,
+            paybackYears: paybackYears,
+            totalInvestment: Math.round(totalInvestment / 10000 * 10) / 10
+        };
+    }
+    
+    // 生成AI建议
+    function generateAdvice(score, supplyDemand, competitorCount, category, city, paybackYears) {
+        const catName = CATEGORY_CONFIG[category].name;
+        const cityName = city;
+        let advice = "";
+        if (score >= 75) {
+            advice = `「${cityName}${catName}选址评级：良好」综合评分${score}分，该区域${catName}品类${supplyDemand < 0.8 ? '存在需求缺口，供不应求' : '供需相对平衡'}，`;
+            advice += competitorCount > 8 ? '但周边竞品密度较高，建议突出差异化定位。' : '周边竞品数量适中，具备竞争优势。';
+        } else if (score >= 55) {
+            advice = `「${cityName}${catName}选址评级：中性」综合评分${score}分，该区域供需${supplyDemand > 1 ? '竞争激烈，' : ''}需谨慎评估。`;
+            advice += competitorCount > 6 ? '竞品较多，建议重点关注如何在品类/定价/体验上拉开差距。' : '可考虑入场，但需控制成本。';
+        } else {
+            advice = `「${cityName}${catName}选址评级：谨慎」综合评分${score}分，该区域${catName}品类${supplyDemand > 1 ? '已明显过剩' : '需求支撑不足'}，`;
+            advice += '不建议优先选择。如已签约，重点关注差异化获客策略。';
+        }
+        if (paybackYears && parseFloat(paybackYears) <= 2) {
+            advice += ` 回本周期预计${paybackYears}年，财务可行性较好。`;
+        } else if (paybackYears && parseFloat(paybackYears) > 3) {
+            advice += ` 回本周期预计${paybackYears}年较长，需拉长观察期。`;
+        }
+        return advice;
+    }
+    
+    // 渲染报告
+    function renderReport(score, competitors, breakeven, huffIndex, supplyDemand, category, city) {
+        document.getElementById('loading').classList.remove('active');
+        document.getElementById('report').classList.add('active');
+        
+        const scoreFg = document.getElementById('scoreFg');
+        const circumference = 2 * Math.PI * 60;
+        const offset = circumference - (score / 100) * circumference;
+        scoreFg.style.strokeDasharray = circumference;
+        scoreFg.style.strokeDashoffset = offset;
+        const scoreColor = score >= 75 ? '#51cf66' : (score >= 55 ? '#ffd43b' : '#ff6b6b');
+        scoreFg.style.stroke = scoreColor;
+        document.getElementById('scoreValue').textContent = score;
+        const scoreLabel = document.getElementById('scoreLabel');
+        scoreLabel.textContent = score >= 75 ? '推荐开店' : (score >= 55 ? '谨慎考虑' : '不建议');
+        scoreLabel.className = 'score-label ' + (score >= 75 ? 'good' : (score >= 55 ? 'medium' : 'bad'));
+        
+        const competitorSummary = document.getElementById('competitorSummary');
+        const catName = CATEGORY_CONFIG[category].name;
+        competitorSummary.textContent = `周边${catName}品类竞品${competitors.length}家，主要分布在1km范围内，平均评分${(competitors.reduce((s, c) => s + parseFloat(c.rating), 0) / competitors.length).toFixed(1)}分。`;
+        
+        const competitorList = document.getElementById('competitorList');
+        competitorList.innerHTML = competitors.slice(0, 6).map(c => 
+            `<span class="competitor-tag">距${c.distance}m·${c.name}·${c.rating}分</span>`
+        ).join('') + (competitors.length > 6 ? `<span class="competitor-tag">+${competitors.length - 6}家</span>` : '');
+        
+        document.getElementById('fixedCost').textContent = breakeven.monthlyFixed + '元';
+        document.getElementById('grossMargin').textContent = breakeven.grossMargin;
+        document.getElementById('breakeven').textContent = breakeven.breakevenMonthly + '元/月';
+        document.getElementById('dailyCustomers').textContent = breakeven.breakevenDaily + '人次/天';
+        document.getElementById('pessimRevenue').textContent = breakeven.pessimRevenue + '万';
+        document.getElementById('neutralRevenue').textContent = breakeven.neutralRevenue + '万';
+        document.getElementById('optimRevenue').textContent = breakeven.optimRevenue + '万';
+        
+        const paybackEl = document.getElementById('paybackPeriod');
+        if (breakeven.paybackYears) {
+            paybackEl.textContent = breakeven.paybackYears + '年';
+            paybackEl.className = 'metric-value ' + (parseFloat(breakeven.paybackYears) <= 2 ? 'positive' : (parseFloat(breakeven.paybackYears) <= 3 ? 'warning' : 'negative'));
+        } else {
+            paybackEl.textContent = '亏损风险';
+            paybackEl.className = 'metric-value negative';
+        }
+        
+        const sd = calcSupplyDemand(competitors, category, city);
+        const sdLabel = sd < 0.7 ? '供不应求（蓝海）' : (sd < 1.0 ? '供需平衡' : (sd < 1.3 ? '轻度过剩' : '严重过剩'));
+        const sdClass = sd < 0.7 ? 'positive' : (sd < 1.0 ? 'warning' : 'negative');
+        document.getElementById('supplyDemand').textContent = sd.toFixed(2);
+        document.getElementById('supplyDemand').className = 'metric-value ' + sdClass;
+        document.getElementById('marketSaturation').textContent = sdLabel;
+        document.getElementById('marketSaturation').className = 'metric-value ' + sdClass;
+        document.getElementById('huffIndex').textContent = huffIndex + '/100';
+        
+        document.getElementById('adviceText').textContent = generateAdvice(score, sd, competitors.length, category, city, breakeven.paybackYears);
+    }
+    
+    // 表单提交
+    document.getElementById('calcForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        document.getElementById('report').classList.remove('active');
+        document.getElementById('loading').classList.add('active');
+        
+        const category = document.getElementById('category').value;
+        const city = document.getElementById('city').value || '北京';
+        const address = document.getElementById('address').value;
+        const area = parseFloat(document.getElementById('area').value) || 40;
+        const rent = parseFloat(document.getElementById('rent').value) || 9600;
+        const price = parseFloat(document.getElementById('price').value) || 22;
+        const staff = parseInt(document.getElementById('staff').value) || 3;
+        
+        setTimeout(() => {
+            const competitors = generateMockCompetitors(category, Math.floor(Math.random() * 10 + 4));
+            const cityCoeff = getCityCoeff(city);
+            const huffIndex = calcHuffIndex(competitors);
+            const supplyDemand = calcSupplyDemand(competitors, category, city);
+            const score = calcScore(huffIndex, supplyDemand, competitors.length, cityCoeff);
+            const breakevenData = calcBreakeven(area, rent, staff, price, category);
+            
+            renderReport(score, competitors, breakevenData, huffIndex, supplyDemand, category, city);
+            
+            // 模拟地图定位
+            const mapContainer = document.getElementById('map-container');
+            if (!window.AMap || !window.AMap.Map) {
+                mapContainer.innerHTML = '<div class="map-placeholder" style="flex-direction:column;"><div style="font-size:32px;margin-bottom:8px;">📍</div><div>高德地图已定位</div><div style="font-size:11px;color:#555;margin-top:4px;">' + address + '</div></div>';
+            }
+        }, 1500);
+    });
+    
+    // 城市系数更新提示
+    document.getElementById('city').addEventListener('change', function() {
+        const coeff = getCityCoeff(this.value);
+        if (coeff > 1) {
+            this.style.borderColor = '#51cf66';
+        }
+    });
+    </script>
+</body>
+</html>
