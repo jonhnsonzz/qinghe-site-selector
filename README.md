@@ -1,145 +1,143 @@
-# 青禾选址宝 (Qinghe Site Selector)
+# Qinghe Site Selector — AI-Powered Retail Location Intelligence
 
-### 🎯 让选址从赌博，变成计算题
+> **Chinese version of [Smart Site Selector](https://github.com/jonhnsonzz/smart-site-selector).** An AI-powered retail location evaluation tool leveraging the Huff Gravity Model, 2SFCA accessibility analysis, and XGBoost revenue prediction.
 
-> **每年30%的门店因选址错误亏损倒闭，平均损失15-40万。**
-> 青禾选址宝用AI量化选址风险，让每一次开店决策都有数据支撑。
+**每年30%的门店因选址错误亏损倒闭，平均损失15-40万。** Qinghe Site Selector quantifies site selection risk with AI, turning gut-feel decisions into data-backed choices.
 
-**[立即体验 Demo](https://jonhnsonzz.github.io/qinghe选址宝/)** | 源码完全开源
+**[Try the Demo](https://jonhnsonzz.github.io/qinghe选址宝/)** | Fully Open Source
 
 ---
 
-## 痛点直击
+## The Problem
 
-| 传统选址 | 青禾选址宝 |
+| Traditional Approach | Qinghe Site Selector |
 |:---|:---|
-| "感觉这条街人流量不错" | Huff引力模型量化客流吸引力 |
-| "附近有几家竞品但不知道饱和没" | 2SFCA供需比测算区域饱和度 |
-| "盈亏测算要算3小时表格" | 30秒自动生成三线盈亏报告 |
-| "竞品分析要自己数、自己查" | 高德POI数据自动抓取周边竞品 |
-| "选址靠感觉，开了店才知道对不对" | AI综合评分+可解释性建议 |
+| "This street looks busy enough" | Huff Gravity Model quantifies consumer attraction |
+| "A few competitors nearby, not sure if saturated" | 2SFCA supply-demand ratio measures area saturation |
+| "3 hours of spreadsheet calculations for P&L" | 30-second automated P&L report |
+| "Manual competitor counting" | Auto-fetch surrounding competitors via Amap POI |
+| "Gut-feel decisions, learn the hard way" | AI composite score + explainable recommendations |
 
 ---
 
-## 核心功能
+## Features
 
-### 📊 智能选址评分
-基于Huff引力模型 + 供需可达性分析 + 机器学习预测，综合输出100分制选址评分，直接告诉你"行还是不行"。
+### 📊 Smart Site Scoring
+Composite 100-point score based on Huff Gravity Model + supply-demand accessibility analysis + ML prediction. Tells you directly: **go or no-go**.
 
-### 💰 盈亏自动测算
-输入面积/租金/客单价，30秒生成完整盈亏报告：
-- 月固定成本明细
-- 盈亏平衡点（营业额/客流）
-- 三线分析（悲观/中性/乐观）
-- 预测回本周期
+### 💰 Automated P&L Estimation
+Enter area/rent/unit price — get a full P&L report in 30 seconds:
+- Monthly fixed cost breakdown
+- Break-even point (revenue / foot traffic)
+- Three-scenario analysis (pessimistic / neutral / optimistic)
+- Predicted payback period
 
-### 🗺️ 竞品分析
-自动抓取周边1km内同品类竞品，输出：
-- 竞品数量 + 平均评分
-- 距离分布可视化
-- 竞争强度雷达
+### 🗺️ Competitor Analysis
+Auto-fetch same-category competitors within 1km radius:
+- Competitor count + average rating
+- Distance distribution visualization
+- Competition intensity radar
 
-### 🎯 AI选址建议
-自然语言输出综合评估结论，每条建议附带量化依据，不只给结论还告诉为什么。
+### 🎯 AI Site Recommendations
+Natural-language assessment with quantified rationale for each recommendation — not just the conclusion, but **why**.
 
 ---
 
-## 快速上手
+## Quick Start
 
-### 方式一：在线体验（推荐）
+### Option 1: Online Demo (Recommended)
 👉 **[https://jonhnsonzz.github.io/qinghe选址宝/](https://jonhnsonzz.github.io/qinghe选址宝/)**
 
-> 功能演示版，使用模拟数据。配置高德Key后可切换真实数据源。
+> Demo version uses simulated data. Configure an Amap API key to switch to real data sources.
 
-### 方式二：本地部署
+### Option 2: Local Deployment
 
 ```bash
-# 克隆仓库
-git clone https://github.com/jonhnsonzz/qinghe选址宝.git
-cd qinghe选址宝
+git clone https://github.com/jonhnsonzz/qinghe-site-selector.git
+cd qinghe-site-selector
 
-# 直接用浏览器打开（推荐Chrome）
+# Open in browser (Chrome recommended)
 open index.html
-# 或
+# or
 python -m http.server 8080
-# 访问 http://localhost:8080
+# Visit http://localhost:8080
 ```
 
-### 方式三：配置真实高德数据（可选）
+### Option 3: Configure Amap Data (Optional)
 
 ```javascript
-// 在 index.html 中替换你的高德Key
-// 1. 去高德开放平台申请Web服务API Key（免费额度：每日1000次）
-// 2. 替换下面的 YOUR_AMAP_KEY
+// Replace YOUR_AMAP_KEY in index.html
+// 1. Apply for a Web Service API Key at Amap Open Platform (free: 1000 calls/day)
+// 2. Replace YOUR_AMAP_KEY below
 
 <script src="https://webapi.amap.com/maps?v=2.0&key=YOUR_AMAP_KEY"></script>
 ```
 
 ---
 
-## 技术架构
+## Methodology
 
-| 层级 | 技术方案 | 说明 |
+This project combines globally validated site selection models:
+
+- **Huff Gravity Model (1963)** — Quantifies consumer store selection probability; core to ESRI/McDonald's systems
+- **MCI Multi-Factor Competition Model** — Generalized Huff variant; distinguishes strong/weak competitive relationships
+- **2SFCA (Two-Step Floating Catchment Area)** — Regional saturation assessment
+- **XGBoost Revenue Prediction** — 40+ dimension composite prediction (Phase 2)
+
+See the [full research report on site selection methodology](https://feishu.cn/docx/BfkndZ0Rmo9C1uxBx87cfjmGnhd) (Chinese).
+
+---
+
+## Tech Stack
+
+| Layer | Technology | Notes |
 |:---|:---|:---|
-| 前端 | 原生HTML/CSS/JS | 零依赖，单文件可运行 |
-| 地图 | 高德地图JS API | POI检索 + 路径规划 |
-| 模型层 | Huff/MCI/2SFCA | 经典空间分析模型 |
-| 预测层 | XGBoost | 营收预测（MVP用规则引擎替代） |
-| 部署 | GitHub Pages | 免费托管，一键部署 |
+| Frontend | Vanilla HTML/CSS/JS | Zero dependencies, single-file runnable |
+| Maps | Amap JS API | POI search + route planning |
+| Models | Huff / MCI / 2SFCA | Classic spatial analysis models |
+| Prediction | XGBoost | Revenue prediction (rule engine for MVP) |
+| Deployment | GitHub Pages | Free hosting, one-click deploy |
 
 ---
 
-## 方法论说明
+## Data Sources
 
-本项目融合了以下经过全球验证的选址方法论：
-
-- **Huff引力模型 (1963)** — 量化消费者选择商铺概率，ESRI/麦当劳体系核心
-- **MCI多因子竞争模型** — Huff泛化版，区分强/弱竞争关系
-- **2SFCA供需可达性** — 区域饱和度判断
-- **XGBoost营收预测** — 40+维度综合预测（第二阶段）
-
-详见：[选址方法论完整调研报告](https://feishu.cn/docx/BfkndZ0Rmo9C1uxBx87cfjmGnhd)
-
----
-
-## 产品路线图
-
-| 阶段 | 功能 | 状态 |
+| Source | Purpose | Status |
 |:---|:---|:---:|
-| MVP | 单品类 + 盈亏测算 + 竞品评分 | ✅ 完成 |
-| v1.1 | 真实高德POI + 多品类支持 | 🔨 开发中 |
-| v1.2 | XGBoost营收预测模型 | 📋 规划 |
-| v2.0 | 企业版 + API + 多店对比 | 📋 规划 |
+| Amap POI | Competitor location/rating | Requires API key |
+| National Bureau of Statistics population data | Regional population density | Built-in |
+| Simulated data | Feature demonstration | ✅ Available |
+
+> **Amap API Free Tier**: 1,000 POI queries/day for individual developers — sufficient for small-scale use and demos.
 
 ---
 
-## 数据说明
+## Product Roadmap
 
-| 数据源 | 用途 | 状态 |
+| Phase | Feature | Status |
 |:---|:---|:---:|
-| 高德地图POI | 竞品位置/评分 | 需配置Key |
-| 国家统计局人口数据 | 区域人口密度 | 内置 |
-| 模拟数据 | 功能演示 | ✅ 可用 |
-
-> **高德API免费额度**：个人开发者每日1000次POI查询，足够小规模使用和演示。
+| MVP | Single category + P&L + competitor scoring | ✅ Complete |
+| v1.1 | Real Amap POI + multi-category support | 🔨 In development |
+| v1.2 | XGBoost revenue prediction model | 📋 Planned |
+| v2.0 | Enterprise + API + multi-store comparison | 📋 Planned |
 
 ---
 
-## 竞品对比
+## Comparison
 
-| 产品 | 目标用户 | 价格 | 中国适配 | AI预测 |
+| Product | Target User | Price | China-Ready | AI Prediction |
 |:---|:---|:---|:---|:---|
-| **青禾选址宝** | 独立小B | 免费/低价 | ✅ 专注 | ✅ 内置 |
-| ESRI BAO | 大型企业 | $100K+/年 | ⚠️ 贵 | ✅ |
-| Placer.ai | 中型连锁 | $3-10万/年 | ❌ | ✅ |
-| 赢商/氪星 | 商业地产 | 议价 | ✅ | ⚠️ |
+| **Qinghe Site Selector** | Small independent businesses | Free/Low-cost | ✅ Dedicated | ✅ Built-in |
+| ESRI BAO | Large enterprises | $100K+/year | ⚠️ Expensive | ✅ |
+| Placer.ai | Mid-chain stores | $30-100K/year | ❌ No | ✅ |
+| Yingshang/Krypton | Commercial real estate | Negotiable | ✅ | ⚠️ |
 
 ---
 
 ## License
 
-MIT License - 欢迎Star ⭐ 和贡献代码
+MIT License — Stars ⭐ and contributions welcome!
 
 ---
 
-**青禾选址宝** | 让每一次选址决策，有数据支撑。
+**Qinghe Site Selector** | Turning every site selection decision into a data-backed choice.
